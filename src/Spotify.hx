@@ -3,7 +3,7 @@ using haxe.Json;
 
 class Spotify {
 
-    private var port:Int = 4370;
+    private var port:Int;
     private var localDomain:String = ".spotilocal.com";
 
     public var oauthToken(default, null):String;
@@ -15,14 +15,20 @@ class Spotify {
       throws "Spotify not running"
      **/
     public function new() {
-        // TODO: Identify port which SpotifyWebHelper listens to
+        // Confirm that the Web Helper is running and in case it is, identify
+        // the port it listens to
+        var versionInfo:Dynamic = null;
+        for (portCandidate in 4370 ... 4381) {
+            try {
+                port = portCandidate;
+                #if debug trace('Trying port ${portCandidate}...'); #end
+                versionInfo = getVersion();
+                break;
+            } catch (msg:String) {}
 
-        // Confirm that the Web Helper is running
-        var versionInfo:Dynamic;
-        try
-            versionInfo = getVersion()
-        catch (msg:String)
-            throw "Spotify Web Helper not running";
+            if (portCandidate == 4380)
+                throw "Spotify Web Helper not running";
+        }
 
         // Confirm that the player is actually running
         if (versionInfo.running == false) {
