@@ -96,7 +96,7 @@ class Spotify {
     private function getRequestTemplate():Http {
         var template:Http = new Http(getSpotilocalUrl(''));
         template.setHeader("Origin", "https://open.spotify.com");
-        template.setParameter("oauth", getOauthToken());
+        template.setParameter("oauth", oauthToken);
         template.setParameter("csrf", csrfToken);
         return template;
     }
