@@ -1,0 +1,4 @@
+-x TestClient
+-cp src
+-debug
+-lib hxssl
