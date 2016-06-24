@@ -9,18 +9,50 @@ class Spotify {
     public var oauthToken(default, null):String;
     public var csrfToken(default, null):String;
 
+    /**
+      throws "Spotify Web Helper not running"
+
+      throws "Spotify not running"
+     **/
     public function new() {
         // TODO: Identify port which SpotifyWebHelper listens to
-        // TODO: Confirm that the player is actually running
+
+        // Confirm that the Web Helper is running
+        var versionInfo:Dynamic;
+        try
+            versionInfo = getVersion()
+        catch (msg:String)
+            throw "Spotify Web Helper not running";
+
+        // Confirm that the player is actually running
+        if (versionInfo.running == false) {
+            throw "Spotify not running";
+        }
+
         oauthToken = getOauthToken();
         csrfToken = getCsrfToken();
     }
 
+    /**
+        Get version info about the current Spotify installation.
+
+        May also include a flag telling if the Spotify player is NOT running.
+        This flag is absent if the player IS running.
+    **/
+    public function getVersion():Dynamic {
+        var httpRequest:Http = new Http(getSpotilocalUrl('/service/version.json'));
+        httpRequest.setHeader("Origin", "https://open.spotify.com");
+        httpRequest.setParameter('service', 'remote');
+        #if debug trace(requestJson(httpRequest)); #end
+
+        return requestJson(httpRequest);
+    }
+
     private function getOauthToken():String {
         var response:String = Http.requestUrl("https://open.spotify.com/token");
-        
+
         #if debug trace('Retrieving Oauth token. Response: ${response}'); #end
-        
+
         return Json.parse(response).t;
     }
 
