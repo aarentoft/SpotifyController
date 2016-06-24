@@ -54,6 +54,20 @@ class Spotify {
         return requestJson(httpRequest);
     }
 
+    /**
+        Pause or unpause the currently playing track.
+
+        `state` determines whether to pause or unpause.
+    **/
+    public function pause(state:Bool):Dynamic {
+        var httpRequest:Http = getRequestTemplate();
+        httpRequest.url += "/remote/pause.json";
+        httpRequest.setParameter("pause", '${state}');
+        #if debug trace('Send pause(${state})..'); #end
+
+        return requestJson(httpRequest);
+    }
+
     private function getOauthToken():String {
         var response:String = Http.requestUrl("https://open.spotify.com/token");
 
