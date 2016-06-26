@@ -55,6 +55,27 @@ class Spotify {
     }
 
     /**
+        Request current status of the Spotify player in JSON format
+
+        `returnafter` Timeout in seconds. The server will respond when this time has
+        passed IF none of the `returnon` events has occurred up until then
+
+        `returnon` optional list of events. When one of these events occur, the server will
+        respond even if the time `returnafter`has not passed since the request was made.
+        Events supported *login*, *logout*, *play*, *pause*, *error* (*ap* is also supported,
+        but its function is unknown to the the author)
+    **/
+    public function requestStatus(returnafter:Int, ?returnon:Array<String>):Dynamic {
+        var httpRequest:Http = getRequestTemplate();
+        httpRequest.url += "/remote/status.json";
+        httpRequest.setParameter("returnafter", '${returnafter}');
+        httpRequest.setParameter("returnon", returnon.join(','));
+        #if debug trace(requestJson(httpRequest)); #end
+
+        return requestJson(httpRequest);
+    }
+
+    /**
         Pause or unpause the currently playing track.
 
         `state` determines whether to pause or unpause.
