@@ -66,13 +66,17 @@ class SpotifyController {
         but its function is unknown to the the author)
     **/
     public function requestStatus(returnafter:Int, ?returnon:Array<String>):Dynamic {
+        if (returnon == null) {
+            returnon = [];
+        }
         var httpRequest:Http = getRequestTemplate();
         httpRequest.url += "/remote/status.json";
         httpRequest.setParameter("returnafter", '${returnafter}');
         httpRequest.setParameter("returnon", returnon.join(','));
-        #if debug trace(requestJson(httpRequest)); #end
 
-        return requestJson(httpRequest);
+        var response:Dynamic = requestJson(httpRequest);
+        #if debug trace(response); #end
+        return response;
     }
 
     /**
