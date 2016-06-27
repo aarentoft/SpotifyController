@@ -80,6 +80,19 @@ class SpotifyController {
     }
 
     /**
+        Play the track with the uri `spotifyUri`
+    **/
+    public function play(spotifyUri:String):Dynamic {
+        var httpRequest:Http = getRequestTemplate();
+        httpRequest.url += "/remote/play.json";
+        httpRequest.setParameter("uri", spotifyUri);
+        httpRequest.setParameter("context", spotifyUri);
+        #if debug trace('Send play(${spotifyUri})'); #end
+
+        return requestJson(httpRequest);
+    }
+
+    /**
         Pause or unpause the currently playing track.
 
         `state` determines whether to pause or unpause.
