@@ -1,7 +1,7 @@
 using haxe.Http;
 using haxe.Json;
 
-class Spotify {
+class SpotifyController {
 
     private var port:Int;
     private var localDomain:String = ".spotilocal.com";
