@@ -1,5 +1,6 @@
 using haxe.Http;
 using haxe.Json;
+using haxe.CallStack;
 
 class SpotifyController {
 
@@ -49,9 +50,8 @@ class SpotifyController {
         var httpRequest:Http = new Http(getSpotilocalUrl('/service/version.json'));
         httpRequest.setHeader("Origin", "https://open.spotify.com");
         httpRequest.setParameter('service', 'remote');
-        #if debug trace(requestJson(httpRequest)); #end
 
-        return requestJson(httpRequest);
+        return debugTraceReturn(requestJson, [httpRequest]);
     }
 
     /**
@@ -74,9 +74,7 @@ class SpotifyController {
         httpRequest.setParameter("returnafter", '${returnafter}');
         httpRequest.setParameter("returnon", returnon.join(','));
 
-        var response:Dynamic = requestJson(httpRequest);
-        #if debug trace(response); #end
-        return response;
+        return debugTraceReturn(requestJson, [httpRequest]);
     }
 
     /**
@@ -87,9 +85,8 @@ class SpotifyController {
         httpRequest.url += "/remote/play.json";
         httpRequest.setParameter("uri", spotifyUri);
         httpRequest.setParameter("context", spotifyUri);
-        #if debug trace('Send play(${spotifyUri})'); #end
 
-        return requestJson(httpRequest);
+        return debugTraceReturn(requestJson, [httpRequest]);
     }
 
     /**
@@ -101,26 +98,19 @@ class SpotifyController {
         var httpRequest:Http = getRequestTemplate();
         httpRequest.url += "/remote/pause.json";
         httpRequest.setParameter("pause", '${state}');
-        #if debug trace('Send pause(${state})..'); #end
 
-        return requestJson(httpRequest);
+        return debugTraceReturn(requestJson, [httpRequest]);
     }
 
     private function getOauthToken():String {
-        var response:String = Http.requestUrl("https://open.spotify.com/token");
-
-        #if debug trace('Retrieving Oauth token. Response: ${response}'); #end
-
-        return Json.parse(response).t;
+        return debugTraceReturn(Json.parse, [Http.requestUrl("https://open.spotify.com/token")]).t;
     }
 
     private function getCsrfToken():String {
         var httpRequest:Http = new Http(getSpotilocalUrl('/simplecsrf/token.json'));
         httpRequest.setHeader("Origin", "https://open.spotify.com");
 
-        #if debug trace('Attempting to get CSRF token. Response: ${requestJson(httpRequest)}'); #end
-
-        return requestJson(httpRequest).token;
+        return debugTraceReturn(requestJson, [httpRequest]).token;
     }
 
     private function getSpotilocalUrl(path:String):String {
@@ -138,7 +128,7 @@ class SpotifyController {
     }
 
     /**
-     * @return a randomized subdomain of length ten in lowercase
+     * Returns a randomized subdomain of length ten in lowercase
      */
     private function generateHostName():String {
         var lowercase = "abcdefghijklmnopqrstuvwxyz";
@@ -152,4 +142,35 @@ class SpotifyController {
         template.setParameter("csrf", csrfToken);
         return template;
     }
+
+    /**
+        Convenience method which calls the function `funct` with the arguments `args`
+        and prints the result of the function if haxe is in -debug mode.
+        `customMessage` will be prepended to the `funct` result.
+
+        Returns the result of `funct` with the arguments `args`
+    **/
+    private function debugTraceReturn(funct:Dynamic, args:Array<Dynamic>, customMessage:String=""):Dynamic {
+        var result:Dynamic = Reflect.callMethod(this, funct, args);
+
+        #if debug
+        // Retrieve the file position of the debugTraceReturn call as this is more
+        // informative than the file position down here in debugTraceReturn
+        var debugMessage:String = '';
+        switch (CallStack.callStack()[1]) {
+            case FilePos(s, file, line):
+                debugMessage = '${file}:${line}: ${customMessage}${result}';
+            case _: trace('Could not recognize FilePos in callstack');
+        }
+        #if sys
+        Sys.println('${debugMessage}');
+        #else
+        trace('${debugMessage}');
+        #end
+
+        #end
+
+        return result;
+    }
+
 }
