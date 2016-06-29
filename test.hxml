@@ -1,4 +1,7 @@
--x TestClient
+-main TestClient
 -cp src
 -debug
 -lib hxssl
+
+--each
+-neko TestClient.n
